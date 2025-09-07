@@ -1,65 +1,9 @@
-# import numpy as np
-# import cv2
-# import mediapipe as mp
-# from typing import Tuple
-# from keras_facenet import FaceNet
-
-# # Load FaceNet from keras-facenet package (no manual .h5 file needed)
-# embedder = FaceNet()
-
-# # Mediapipe Face Detection
-# mp_face_detection = mp.solutions.face_detection
-# FACE_DETECTOR = mp_face_detection.FaceDetection(
-#     model_selection=1,
-#     min_detection_confidence=0.5
-# )
-
-# def detect_primary_face(image_bgr: np.ndarray) -> Tuple[Tuple[int,int,int,int], np.ndarray]:
-#     """
-#     Detect first face in image.
-#     Returns (x, y, w, h), face_rgb or (None, None) if no face found.
-#     """
-#     img_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-#     results = FACE_DETECTOR.process(img_rgb)
-#     if not results.detections:
-#         return None, None
-
-#     det = results.detections[0]
-#     h, w, _ = image_bgr.shape
-#     bbox = det.location_data.relative_bounding_box
-#     x = max(0, int(bbox.xmin * w))
-#     y = max(0, int(bbox.ymin * h))
-#     bw = min(w - x, int(bbox.width * w))
-#     bh = min(h - y, int(bbox.height * h))
-
-#     face_rgb = img_rgb[y:y+bh, x:x+bw]
-#     return (x, y, bw, bh), face_rgb
-
-
-# def get_embedding(face_rgb: np.ndarray) -> np.ndarray:
-#     """
-#     Generate a normalized FaceNet embedding for a given RGB face image.
-#     Returns a 512-dim numpy array or None if extraction fails.
-#     """
-#     if face_rgb is None or face_rgb.size == 0:
-#         return None
-
-#     results = embedder.extract(face_rgb)
-#     if not results:
-#         return None
-
-#     emb = results[0]['embedding']
-#     # Normalize
-#     emb = emb / np.linalg.norm(emb)
-#     return emb
-
 import numpy as np
 import cv2
 import mediapipe as mp
 from typing import Tuple
 from keras_facenet import FaceNet
 
-# Load FaceNet from keras-facenet package (no manual .h5 file needed)
 embedder = FaceNet()
 
 # Mediapipe Face Detection
