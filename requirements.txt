@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+numpy
+opencv-python-headless
+tensorflow
+mediapipe
+pillow
+faiss-cpu
+python-multipart
+sqlalchemy
+alembic
+pydantic

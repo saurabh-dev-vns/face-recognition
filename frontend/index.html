@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ERP Face Attendance</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #d2e1ef 0%, #f7fafc 100%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      padding: 28px 20px 24px 20px;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+      width: 100%;
+      max-width: 410px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 22px;
+      letter-spacing: 0.5px;
+      color: #235390;
+      font-size: 1.8rem;
+    }
+
+    video, canvas {
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 4/3;
+      border: 2px solid #b4c7ea;
+      border-radius: 14px;
+      background: #eef3fa;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 10px 0 #e2e6ef;
+    }
+    canvas {
+      display: none;
+    }
+
+    button {
+      background: linear-gradient(100deg, #2465e8 60%, #3fd2cf 100%);
+      color: #fff;
+      padding: 14px 20px;
+      font-size: 1.16rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      margin-top: 8px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px #e2e6ef;
+      transition: filter 0.15s;
+    }
+    button:active,
+    button:hover {
+      filter: brightness(0.93);
+    }
+
+    #status {
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 1.05rem;
+      transition: color 0.2s;
+      min-height: 17px;
+      word-break: break-word;
+    }
+    @media (max-width: 800px) {
+      .container {
+        max-width: 98vw;
+        padding: 12px 2vw 20px 2vw;
+      }
+      h2 {
+        font-size: 1.35rem;
+      }
+      button {
+        font-size: 1rem;
+        padding: 13px 12px;
+      }
+    }
+    @media (max-width: 490px) {
+      h2 {
+        font-size: 1.01rem;
+      }
+      video, canvas {
+        max-width: 98vw;
+        aspect-ratio: 4/3;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>ERP Face Attendance</h2>
+    <video id="video" autoplay playsinline></video>
+    <button id="capture">Capture & Mark Attendance</button>
+    <p id="status"></p>
+    <canvas id="canvas"></canvas>
+  </div>
+  <!-- <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          // Match video size to video element size for best capture resolution
+          canvas.width = video.videoWidth || 320;
+          canvas.height = video.videoHeight || 240;
+        };
+      } catch (err) {
+        status.innerText = "Camera access denied: " + err.message;
+        status.style.color = "red";
+      }
+    }
+    async function captureAndSend() {
+      canvas.width = video.videoWidth || 320;
+      canvas.height = video.videoHeight || 240;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL('image/jpeg', 0.9);
+      status.innerText = "Processing...";
+      status.style.color = "#235390";
+      try {
+        const res = await fetch('http://localhost:8000/recognize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: data })
+        });
+        const result = await res.json();
+        status.innerText = result.message;
+        status.style.color = result.status === "ok" ? "#24b44b" : "#e53e3e";
+      } catch (e) {
+        status.innerText = "Error: " + e.message;
+        status.style.color = "#e53e3e";
+      }
+    }
+    document.getElementById('capture').addEventListener('click', captureAndSend);
+    window.addEventListener('DOMContentLoaded', initCamera);
+  </script> -->
+  <script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+
+async function initCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    video.onloadedmetadata = () => {
+      canvas.width = video.videoWidth || 320;
+      canvas.height = video.videoHeight || 240;
+    };
+  } catch (err) {
+    status.innerText = "Camera access denied: " + err.message;
+    status.style.color = "red";
+  }
+}
+
+async function captureAndSend() {
+  const frames = [];
+  const captureDuration = 2000; // capture for 2 seconds
+  const interval = 200;         // every 200ms
+  const start = Date.now();
+
+  status.innerText = "Capturing... Please blink.";
+  status.style.color = "#235390";
+
+  while (Date.now() - start < captureDuration) {
+    canvas.width = video.videoWidth || 320;
+    canvas.height = video.videoHeight || 240;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    frames.push(canvas.toDataURL('image/jpeg', 0.9));
+    await new Promise(r => setTimeout(r, interval));
+  }
+
+  status.innerText = "Processing...";
+  try {
+    const res = await fetch('http://localhost:8000/recognize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frames })
+    });
+    const result = await res.json();
+    status.innerText = result.message;
+    status.style.color = result.status === "ok" ? "#24b44b" : "#e53e3e";
+  } catch (e) {
+    status.innerText = "Error: " + e.message;
+    status.style.color = "#e53e3e";
+  }
+}
+
+document.getElementById('capture').addEventListener('click', captureAndSend);
+window.addEventListener('DOMContentLoaded', initCamera);
+</script>
+
+</body>
+</html>
