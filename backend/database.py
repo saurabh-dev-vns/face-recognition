@@ -18,7 +18,7 @@ class Attendance(Base):
     __tablename__ = 'attendance'
     id = Column(Integer, primary_key=True)
     user_id = Column(String, index=True)
-    timestamp = Column(DateTime, default=datetime.datetime.utc)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
 
 engine = create_engine('sqlite:///backend/erp_face.db', connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
